@@ -361,45 +361,60 @@ Add the following into the file:
 11. To enable the virtual host
       
         85.sudo a2ensite nuevoMexico
-The following prompt will be returned:
-Enabling site nuevoMexico.	
-To activate the new configuration, you need to run:
-  service apache2 reload
-Run sudo service apache2 reload
-Write a .wsgi file
-Apache serves Flask applications by using a .wsgi file; create a file called nuevoMexico.wsgi in /var/www/nuevoMexico
+12. The following prompt will be returned:
+		
+		Enabling site bermuda	
+		To activate the new configuration, you need to run:
+		service apache2 reload
+13. sudo service apache2 reload
+# Write a .wsgi file
+1. Apache serves Flask applications by using a .wsgi file; create a file called bermuda.wsgi in /var/www/bermuda
 Add the following to the file:
 activate_this = '/var/www/nuevoMexico/nuevoMexico/venv/bin/activate_this.py'
 execfile(activate_this, dict(__file__=activate_this))
 
-#!/usr/bin/python
-import sys
-import logging
-logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0,"/var/www/nuevoMexico/")
+	#!/usr/bin/python
+	import sys
+	import logging
+	logging.basicConfig(stream=sys.stderr)
+	sys.path.insert(0,"/var/www/bermuda/")
 
-from nuevoMexico import app as application
-application.secret_key = '12345'
-Resart Apache: sudo service apache2 restart
-Switch the database in the application from SQLite to PostgreSQL
-Replace line 38 in __init__.py, line 85 in database_setup.py, and line 7 in populator.py with the following:
-engine = create_engine('postgresql://catalog:INSERT_PASSWORD_FOR_DATABASE_HERE@localhost/catalog')
-Disable the default Apache site
-At some point during the configuration, the default Apache site will likely need to be disabled; to do this, run sudo a2dissite 000-default.conf
-The following prompt will be returned:
-Site 000-default disabled.
-To activate the new configuration, you need to run:
-  service apache2 reload
-Run sudo service apache2 reload
-Change the ownership of the project direcotries
-Change the ownership of the project directories and files to the www-data user (this is done because Apache runs as the www-data user); while in the /var/www directory, run:
-sudo chown -R www-data:www-data nuevoMexico/
-Note: if changes need to be made to the project files after the ownership of the directories has been switched to www-data, it is best to edit files as the www-data user; do this with the following command:
-sudo -u www-data vim INSERT_NAME_OF_FILE
+	from bermuda import app as application
+	application.secret_key = '12345'
+14. Resart Apache: 
+	
+		86. sudo service apache2 restart
+# Switch the database in the application from SQLite to PostgreSQL
+Replace the engine creation files in __init__.py, databasesetup.py and lotsofmenus.py.
+		
+		engine = create_engine('postgresql://catalog:INSERT_PASSWORD_FOR_DATABASE_HERE@localhost/catalog')
+# Disable the default Apache site
+1. At some point during the configuration, the default Apache site will likely need to be disabled; to do this, run
+		
+		87. sudo a2dissite 000-default.conf
+2. The following prompt will be returned:
+		Site 000-default disabled.
+3. To activate the new configuration, you need to run: sudo service apache2 reload
+		
+		88. sudo service apache2 reload
+# Change the ownership of the project direcotries
+
+
+1. Change the ownership of the project directories and files to the www-data user (this is done because Apache runs as the www-data user); while in the /var/www directory, run:
+		
+		89. sudo chown -R www-data:www-data bermuda/
+2. Note: if changes need to be made to the project files after the ownership of the directories has been switched to www-data, it is best to edit files as the www-data user; do this with the following command:
+		
+		90.sudo -u www-data vim INSERT_NAME_OF_FILE
 (Note: vim can be replaced here with nano or another text editor.)
-Set up the database schema and populate the database
-While in the /var/www/nuevoMexico/nuevoMexico/ directory, activate the virtualenv by running . venv/bin/activate
-Then run python populator.py
-Deactivate the virtualenv (run deactivate)
-Resart Apache again: sudo service apache2 restart
-Now open up a browser and check to make sure the app is working by going to http://XX.XX.XX.XX or http://ec2-XX-XX-XX-XX.compute-1.amazonaws.com
+3. Set up the database schema and populate the database
+While in the /var/www/bermuda/bermuda/ directory, activate the virtualenv by running 
+		
+		91. . venv/bin/activate
+4. Then run python databasesetup.py
+5. Deactivate the virtualenv run
+
+		92. deactivate
+6. 	Resart Apache again: sudo service apache2 restart
+Now open up a browser and check to make sure the app is working by going to http://13.234.38.177 or http://ec2-13-234-38-177.ap-south-1.compute.amazonaws.com
+
