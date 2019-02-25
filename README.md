@@ -194,6 +194,12 @@ Note: As mentioned above, connecting to the instance through a browser now no lo
 2. Test to make sure the timezone is configured correctly by running
                     
          40.date
+# Fix sudo resolve host error
+When the grader user issues a sudo command, got the following warning: sudo: unable to resolve host ip-10-20-47-177
+To fix this, the hostname was added to the loopback address in the /etc/hosts file so that th first line now reads:
+
+		127.0.0.1 localhost ip-10-20-47-177
+This solution was found on the Ubuntu Forms here.
 # Install and configure Apache
 1. To install Apache
       
@@ -370,7 +376,7 @@ Add the following into the file:
 # Write a .wsgi file
 1. Apache serves Flask applications by using a .wsgi file; create a file called bermuda.wsgi in /var/www/bermuda
 Add the following to the file:
-activate_this = '/var/www/nuevoMexico/nuevoMexico/venv/bin/activate_this.py'
+activate_this = '/var/www/bermuda/bermuda/venv/bin/activate_this.py'
 execfile(activate_this, dict(__file__=activate_this))
 
 	#!/usr/bin/python
@@ -416,5 +422,88 @@ While in the /var/www/bermuda/bermuda/ directory, activate the virtualenv by run
 
 		92. deactivate
 6. 	Resart Apache again: sudo service apache2 restart
+
+# Update the Google OAuth client secrets file
+Fill in the client_id and client_secret fields in the file g_client_secrets.json. Also change the javascript_origins field to the IP address and AWS assigned URL of the host. In this instance that would be: "javascript_origins":["http://13.234.38.177", "http://"ec2-13-234-38-177.ap-south-1.compute.amazonaws.com"]
+These addresses also need to be entered into the Google Developers Console -> API Manager -> Credentials, in the web client under "Authorized JavaScript origins".
+Update the Facebook OAuth client secrets file
+In the file fb_client_secrets.json, fill in the app_id and app_secret fields with the correct values.
+In the Facebook developers website, on the Settings page, the website URL needs to read http://ec2-13-234-38-177.ap-south-1.compute.amazonaws.com. Then in the "Advanced" tab, in the "Client OAuth Settings" section, add http://ec2-13-234-38-177.ap-south-1.compute.amazonaws.com and http://13.234.38.177 to the "Valid OAuth redirect URIs" field. Then save these changes.
+
+# Automatic Updates
+1. Automatic security updates have been implementing using the instructions in the Ubuntu documentation, Automatic Updates.
+2. Check that the unattended-upgrades package is installed:
+		
+		sudo apt-get install unattended-upgrades
+
+3. Check the configuration file /etc/apt/apt.conf.d/50unattended-upgrades to see which class of updates get installed. It was left at the default of security updates only.
+4. Change the configuration file /etc/apt/apt.conf.d/10periodic to specify how often updates and other tasks should be performed. It's contents are now:
+		
+		APT::Periodic::Update-Package-Lists "1";
+		APT::Periodic::Download-Upgradeable-Packages "1";
+		APT::Periodic::AutocleanInterval "7";
+		APT::Periodic::Unattended-Upgrade "1";
+5. So the package list is updated daily and security updates will be downloaded and installed daily. Every week the local download archive will be cleaned.
+
+
+6. Unattended package installation can be monitiored by reviewing the log file located here: /var/log/apt/unattended-upgrades/unattended-upgrades.log.
+
+
+# Monitor for Repeated Failed Login Attempts
+The program Fail2Ban will be used to block IP addresses from which unsuccessful login attempts have occurred. This is on top of using a non-standard SSH port number and requiring an RSA key to login. The following guide was useful in this task: How To Protect SSH with Fail2Ban on Ubuntu 14.04. Also this guide for setting up Fail2ban when the UFW is being used: UFW with Fail2ban – Quick Secure Setup. ### Although I needed this page to confirm a detail in that post.
+1. Install Fail2Ban:
+
+		sudo apt-get install fail2ban
+2. Install Sendmail to send email notifications of banned IP addresses:
+
+		sudo apt-get install sendmail
+3. Copy the Fail2Ban configuration file to a local config file that will override it. This way, if their updates to the default config file, they will not have to be merged with any changes the user makes.
+		
+		sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+4. Edit this file with:
+
+		sudo nano /etc/fail2ban/jail.local
+5. I set the following settings that differ from the default. Within the [DEFAULT] section:
+		bantime = 1800
+
+		destemail = [my email address]
+
+		action = %(action_mwl)s
+		This bans an IP address for 1800 seconds and sends an email to the address specified. The action means an email notification will be sent with logging extract included.
+		The ssh section is as follows:
+		[ssh]
+
+		enabled  = true
+		banaction = ufw-ssh
+		port     = 2200
+		filter   = sshd
+		logpath  = /var/log/auth.log
+		maxretry = 3
+6. The banaction is set to run a custom action ufw-ssh which will be defined below. It uses the UFW frontend to the iptables firewall. This will mean blocked IP address will appear in the output of sudo ufw status. The port is set to our customised SSH port.
+Contents of /etc/fail2ban/action.d/ufw-ssh.conf is:
+			
+			[Definition]
+			actionstart =
+			actionstop =
+			actioncheck =
+			actionban = ufw insert 1 deny from <ip> to any port 2200
+			actionunban = ufw delete deny from <ip> to any port 2200
+7. So Fail2Ban will insert a deny rule as the first rule from the relevant IP address for the custom SSH port 2200. After the 1800 second ban time, this rule will be deleted.
+
+8.To make the new settings take effect, stop and start the fail2ban service with:
+		
+		sudo service fail2ban stop
+		sudo service fail2ban start
+# System Monitoring
+1. Glances is a full-featured system monitor. It can also monitor processes. Install Glances with:
+		
+		sudo apt-get install glances
+2. To monitor Apache and Postgres, the following lines were added to the Glances config file /etc/glances/glances.conf:
+		
+		list_1_description=Apache Server
+		list_1_regex=.*apache.*
+		list_2_description=Postgres
+		list_2_regex=.*postgres.*
+
 Now open up a browser and check to make sure the app is working by going to http://13.234.38.177 or http://ec2-13-234-38-177.ap-south-1.compute.amazonaws.com
 
