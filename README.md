@@ -423,12 +423,6 @@ While in the /var/www/bermuda/bermuda/ directory, activate the virtualenv by run
 		92. deactivate
 6. 	Resart Apache again: sudo service apache2 restart
 
-# Update the Google OAuth client secrets file
-Fill in the client_id and client_secret fields in the file g_client_secrets.json. Also change the javascript_origins field to the IP address and AWS assigned URL of the host. In this instance that would be: "javascript_origins":["http://13.234.38.177", "http://"ec2-13-234-38-177.ap-south-1.compute.amazonaws.com"]
-These addresses also need to be entered into the Google Developers Console -> API Manager -> Credentials, in the web client under "Authorized JavaScript origins".
-Update the Facebook OAuth client secrets file
-In the file fb_client_secrets.json, fill in the app_id and app_secret fields with the correct values.
-In the Facebook developers website, on the Settings page, the website URL needs to read http://ec2-13-234-38-177.ap-south-1.compute.amazonaws.com. Then in the "Advanced" tab, in the "Client OAuth Settings" section, add http://ec2-13-234-38-177.ap-south-1.compute.amazonaws.com and http://13.234.38.177 to the "Valid OAuth redirect URIs" field. Then save these changes.
 
 # Automatic Updates
 1. Automatic security updates have been implementing using the instructions in the Ubuntu documentation, Automatic Updates.
@@ -507,3 +501,16 @@ Contents of /etc/fail2ban/action.d/ufw-ssh.conf is:
 
 Now open up a browser and check to make sure the app is working by going to http://13.234.38.177 or http://ec2-13-234-38-177.ap-south-1.compute.amazonaws.com
 
+# References
+
+I got to say my sincere thanks to stackoverflow, askubuntu, udacity knoledge hub,digital ocean and some git hub repositories especially from bencam and stephen woodking helped me through this project without these i may be still at thinking state but not at working state.
+1. https://stackoverflow.com/questions/6960019/how-do-i-find-which-application-is-using-up-my-port
+2. https://github.com/bencam/linux-server-configuration
+3. https://www.mydigitallife.net/how-to-check-and-identify-which-application-is-listening-or-opening-port-80-and-443-on-windows/
+4. https://stackoverflow.com/questions/12172188/ssh-server-connect-to-host-xxx-port-22-connection-timed-out-on-linux-ubuntu
+5. https://help.github.com/en/articles/basic-writing-and-formatting-syntax
+6. http://flask.pocoo.org/
+7.https://unix.stackexchange.com/questions/21302/ssh-connection-refused-how-to-troubleshoot
+8. https://www.digitalocean.com/community/tutorials/how-to-create-a-sudo-user-on-ubuntu-quickstart
+9. https://www.fail2ban.org/wiki/index.php/Main_Page
+10. https://glances.readthedocs.io/en/stable/
